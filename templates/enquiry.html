@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lift Project Proposal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-purple-50 min-h-screen p-6">
+  <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-purple-200">
+    <h2 class="text-3xl font-bold mb-6 text-center text-purple-800">🚀 Project Proposal Form</h2>
+
+    <form id="proposal-form" class="space-y-8">
+      <!-- Enquiry Person -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 text-purple-700"><i data-feather="user"></i>Enquiry Person</h3>
+        <input required name="enquiry_person" placeholder="Enquiry Person Name" class="w-full border rounded-xl px-4 py-2 mb-3 focus:ring-2 focus:ring-purple-300" />
+      </div>
+
+      <!-- Builder/Client Info -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 text-purple-700"><i data-feather="home"></i>Client / Site Info</h3>
+        <input required name="builder_name" placeholder="Builder / Construction Name" class="w-full border rounded-xl px-4 py-2 mb-3" />
+        <input required name="site_name" placeholder="Site Name" class="w-full border rounded-xl px-4 py-2 mb-3" />
+        <input required name="location" placeholder="Location" class="w-full border rounded-xl px-4 py-2 mb-3" />
+        <input required name="city" placeholder="City" class="w-full border rounded-xl px-4 py-2 mb-3" />
+      </div>
+
+      <!-- Decision Maker -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 text-purple-700"><i data-feather="briefcase"></i>Decision Maker</h3>
+        <input required name="dm_name" placeholder="Decision Maker Name" class="w-full border rounded-xl px-4 py-2 mb-3" />
+        <input required type="tel" name="dm_contact" placeholder="Contact Number" class="w-full border rounded-xl px-4 py-2 mb-3" />
+        <input type="email" name="dm_email" placeholder="Email (optional)" class="w-full border rounded-xl px-4 py-2" />
+      </div>
+
+      <!-- Project Details -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 text-purple-700"><i data-feather="layers"></i>Project Details</h3>
+        <input required name="floors" placeholder="No. of Floors" class="w-full border rounded-xl px-4 py-2 mb-3" />
+        <input required type="number" name="num_lifts" id="num_lifts" placeholder="Number of Lifts" class="w-full border rounded-xl px-4 py-2 mb-3" />
+        <div id="lift-sections"></div>
+      </div>
+
+      <div class="text-center pt-4">
+        <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-xl hover:bg-purple-700 transition">Generate PDF</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    feather.replace();
+    const liftSectionsContainer = document.getElementById('lift-sections');
+    const numLiftsInput = document.getElementById('num_lifts');
+
+    numLiftsInput.addEventListener('input', () => {
+      const count = parseInt(numLiftsInput.value) || 0;
+      liftSectionsContainer.innerHTML = '';
+
+      for (let i = 1; i <= count; i++) {
+        const section = document.createElement('div');
+        section.className = 'border p-4 rounded-xl mb-4 bg-purple-50';
+        section.innerHTML = `
+          <h4 class="font-semibold mb-2 text-purple-700">Lift #${i}</h4>
+          <input required name="shaft_size_${i}" placeholder="Shaft Size" class="w-full border rounded-xl px-4 py-2 mb-3" />
+          <select required name="lift_type_${i}" class="w-full border rounded-xl px-4 py-2">
+            <option value="">Select Type</option>
+            <option>M.S</option>
+            <option>S.S</option>
+          </select>
+        `;
+        liftSectionsContainer.appendChild(section);
+      }
+    });
+
+    document.getElementById('proposal-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const data = new FormData(this);
+      const formObject = Object.fromEntries(data.entries());
+
+      fetch('/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formObject)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to generate PDF");
+        return res.blob().then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = res.headers.get('Content-Disposition')?.split('filename=')[1] || "proposal.pdf";
+          a.click();
+        });
+      })
+      .catch(err => alert(err.message));
+    });
+  </script>
+</body>
+</html>
