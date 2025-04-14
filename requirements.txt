@@ -3,3 +3,4 @@ docxtpl
 fpdf
 num2words
 Werkzeug
+gunicorn
