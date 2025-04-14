@@ -1,0 +1,5 @@
+Flask
+docxtpl
+fpdf
+num2words
+Werkzeug
